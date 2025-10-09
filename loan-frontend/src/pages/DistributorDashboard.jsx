@@ -45,7 +45,7 @@ export default function DistributorDashboard() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch("https://your-backend.com/getLoanRequests");
+      const res = await fetch("https://localhost:8000/api/loans");
       const data = await res.json();
       const fetched = data.requests || [];
       setRequests(fetched.length ? fetched : INLINE_MOCK_REQUESTS);
@@ -61,7 +61,7 @@ export default function DistributorDashboard() {
     // optimistic UI update
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     try {
-      await fetch("https://your-backend.com/updateLoanStatus", {
+      await fetch("https://localhost:8000/api/loans/:id/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status }),
