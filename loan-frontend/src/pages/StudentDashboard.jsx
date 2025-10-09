@@ -11,6 +11,8 @@ export default function StudentDashboard() {
     familyannualincome: "",
     creditScore: "",
     previousDefaults: "No",
+    aadhar: "",
+    dob: "",
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -84,63 +86,79 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative bg-white p-6 rounded-lg shadow-md overflow-hidden h-96">
+        <form onSubmit={handleSubmit} className="relative bg-white p-6 rounded-lg shadow-md overflow-hidden">
           {/* Step 1 - Personal */}
           <div className={`transition-transform duration-300 ease-in-out ${stepClass(1)}`}>
             <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
-            <div className="mb-3">
-              <label className="block mb-1">Full name</label>
-              <input name="name" value={formData.name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="e.g. Aisha Khan" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Email</label>
-              <input name="email" value={formData.email} onChange={handleChange} className="w-full border p-2 rounded" placeholder="you@example.com" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Phone (optional)</label>
-              <input name="phone" value={formData.phone} onChange={handleChange} className="w-full border p-2 rounded" placeholder="+91-..." />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1">Full name</label>
+                <input name="name" value={formData.name} onChange={handleChange} className="w-full border p-3 rounded-lg" placeholder="e.g. Aisha Khan" />
+              </div>
+              <div>
+                <label className="block mb-1">Email</label>
+                <input name="email" value={formData.email} onChange={handleChange} className="w-full border p-3 rounded-lg" placeholder="you@example.com" />
+              </div>
+
+              <div>
+                <label className="block mb-1">Aadhar number</label>
+                <input name="aadhar" value={formData.aadhar} onChange={handleChange} className="w-full border p-3 rounded-lg" placeholder="xxxx-xxxx-xxxx" />
+              </div>
+              <div>
+                <label className="block mb-1">Date of Birth</label>
+                <input name="dob" type="date" value={formData.dob} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block mb-1">Phone (optional)</label>
+                <input name="phone" value={formData.phone} onChange={handleChange} className="w-full border p-3 rounded-lg" placeholder="+91-..." />
+              </div>
             </div>
           </div>
 
           {/* Step 2 - Loan details */}
           <div className={`transition-transform duration-300 ease-in-out ${stepClass(2)}`}>
             <h2 className="text-lg font-semibold mb-4">Loan Details</h2>
-            <div className="mb-3">
-              <label className="block mb-1">Loan Amount (₹)</label>
-              <input name="loanAmount" type="number" value={formData.loanAmount} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Loan Duration (months)</label>
-              <input name="loanDuration" type="number" value={formData.loanDuration} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Purpose</label>
-              <input name="purpose" value={formData.purpose} onChange={handleChange} className="w-full border p-2 rounded" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1">Loan Amount (₹)</label>
+                <input name="loanAmount" type="number" value={formData.loanAmount} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
+              <div>
+                <label className="block mb-1">Loan Duration (months)</label>
+                <input name="loanDuration" type="number" value={formData.loanDuration} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1">Purpose</label>
+                <input name="purpose" value={formData.purpose} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
             </div>
           </div>
 
           {/* Step 3 - Financial */}
           <div className={`transition-transform duration-300 ease-in-out ${stepClass(3)}`}>
             <h2 className="text-lg font-semibold mb-4">Financial Information</h2>
-            <div className="mb-3">
-              <label className="block mb-1">Family Annual Income (₹)</label>
-              <input name="familyannualincome" type="number" value={formData.familyannualincome} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Credit Score (optional)</label>
-              <input name="creditScore" type="number" value={formData.creditScore} onChange={handleChange} className="w-full border p-2 rounded" />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1">Previous loan defaults?</label>
-              <select name="previousDefaults" value={formData.previousDefaults} onChange={handleChange} className="w-full border p-2 rounded">
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1">Family Annual Income (₹)</label>
+                <input name="familyannualincome" type="number" value={formData.familyannualincome} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
+              <div>
+                <label className="block mb-1">Credit Score (optional)</label>
+                <input name="creditScore" type="number" value={formData.creditScore} onChange={handleChange} className="w-full border p-3 rounded-lg" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1">Previous loan defaults?</label>
+                <select name="previousDefaults" value={formData.previousDefaults} onChange={handleChange} className="w-full border p-3 rounded-lg">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="absolute left-0 right-0 bottom-4 px-6 flex justify-between">
+          <div className="mt-6 flex items-center justify-between">
             <div>
               <button type="button" onClick={prev} disabled={step === 1} className="px-4 py-2 rounded border bg-white disabled:opacity-50">
                 Back
