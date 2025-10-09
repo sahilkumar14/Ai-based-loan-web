@@ -28,9 +28,8 @@ export default function Signup({ setUser, setRole }) {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Create an account</h1>
-        <p className="text-sm text-gray-500 mb-6">Get started with a free account</p>
+        <p className="text-sm text-gray-500 mb-6">Start applying with a new account</p>
 
-        {/* Email signup only (social login removed) */}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
