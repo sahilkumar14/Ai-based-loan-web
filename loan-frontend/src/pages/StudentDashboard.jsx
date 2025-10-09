@@ -42,18 +42,43 @@ export default function StudentDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch("https://localhost:8000/api/auth/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      // map frontend form names to backend expected fields
+      const payload = {
+        student_name: formData.name,
+        loan_amount: formData.loanAmount,
+        income: formData.familyannualincome,
+        credit_score: formData.creditScore,
+        employment_type: formData.purpose,
+        loan_duration: formData.loanDuration,
+        previous_defaults: formData.previousDefaults === 'Yes',
+      };
+
+      const token = localStorage.getItem('token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      // use the loans endpoint (backend expects /api/loans/submit)
+      const res = await fetch('http://localhost:8000/api/loans/submit', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      alert(data.message || "Your loan is under review");
-      setFormData(initialState);
-      setStep(1);
+
+      // handle non-json or error responses
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        const msg = (data && data.message) || 'Submission failed';
+        console.error('Loan submit failed', res.status, data);
+        alert(msg);
+      } else {
+        alert((data && data.message) || 'Your loan is under review');
+        setFormData(initialState);
+        setStep(1);
+      }
     } catch (err) {
       console.error(err);
-      alert("Error submitting loan request");
+      alert('Error submitting loan request');
     } finally {
       setSubmitting(false);
     }

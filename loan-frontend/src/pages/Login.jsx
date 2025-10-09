@@ -38,7 +38,14 @@ export default function Login({ setRole, setUser }) {
       });
       const data = await res.json();
       if (data.success) {
+        // Persist token and user for authenticated requests
+        try {
+          if (data.token) localStorage.setItem('token', data.token);
+          if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+        } catch {}
+
         setRole(form.role);
+        if (setUser && data.user) setUser(data.user.name || data.user.full_name || data.user.email);
         navigate(form.role === "student" ? "/student" : "/distributor");
       } else {
         alert(data.message || "Login failed");
