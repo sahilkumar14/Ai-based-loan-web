@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import bgImage from "../assets/2563.jpg";
+import dummyUsers from "../data/dummyUsers";
 
 export default function Login({ setRole, setUser }) {
   const bgStyle = {
@@ -15,7 +16,20 @@ export default function Login({ setRole, setUser }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: replace with your backend URL
+    // Local dummy-auth fallback for development/testing
+    const matched = dummyUsers.find(
+      (u) => u.email === form.email && u.password === form.password && u.role === form.role
+    );
+    if (matched) {
+      if (setUser) setUser(matched.name);
+      if (setRole) setRole(matched.role);
+      // Optional: attach any user data to localStorage for other pages
+      try { localStorage.setItem('devUser', JSON.stringify(matched)); } catch {}
+      navigate(matched.role === "student" ? "/student" : "/distributor");
+      return;
+    }
+
+    // If no dummy user matched, fall back to network auth (replace URL with real backend)
     try {
       const res = await fetch("https://your-backend.com/api/auth/login", {
         method: "POST",
