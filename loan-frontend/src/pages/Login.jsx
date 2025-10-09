@@ -31,7 +31,7 @@ export default function Login({ setRole, setUser }) {
 
     // If no dummy user matched, fall back to network auth (replace URL with real backend)
     try {
-      const res = await fetch("https://your-backend.com/api/auth/login", {
+      const res = await fetch("https://10.107.1.124:8000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -130,7 +130,7 @@ export default function Login({ setRole, setUser }) {
             </select>
           </div>
 
-          {form.role === "student" && (
+          {/* {form.role === "student" && (
             <div className="relative">
               <input
                 name="AadharCardNumber"
@@ -158,7 +158,7 @@ export default function Login({ setRole, setUser }) {
                 Bank Name
               </label>
             </div>
-          )}
+          )} */}
 
           <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700">Sign in</button>
         </form>

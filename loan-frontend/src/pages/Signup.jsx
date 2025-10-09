@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Webcam from 'react-webcam'; // Import the Webcam component
@@ -22,6 +21,11 @@ export default function Signup({ setUser, setRole }) {
     facingMode: "user"
   };
 
+  // CSS style to mirror the video preview horizontally
+  const mirroredStyle = {
+    transform: 'scaleX(-1)'
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     // Reset photo data if the role changes from student to something else
@@ -42,7 +46,7 @@ export default function Signup({ setUser, setRole }) {
       }
       
       // ... (Rest of the fetch logic is the same)
-      const res = await fetch("/signup", {
+      const res = await fetch("http://10.107.1.124:8000/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -146,7 +150,7 @@ export default function Signup({ setUser, setRole }) {
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Input fields remain the same */}
             <div className="relative">
-              <input name="name" value={form.name} onChange={handleChange} placeholder=" " className="peer w-full border border-gray-200 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200" required />
+              <input name="full_name" value={form.fullname} onChange={handleChange} placeholder=" " className="peer w-full border border-gray-200 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200" required />
               <label className="absolute left-3 top-3 text-gray-400 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-focus:top-[-0.6rem] peer-focus:text-xs peer-focus:text-blue-600 bg-white px-1">Full name</label>
             </div>
             <div className="relative">
@@ -169,9 +173,7 @@ export default function Signup({ setUser, setRole }) {
 
             {form.role === 'student' && (
               <div className="space-y-2">
-                {/* 1. Initial state: Show buttons for Camera or File Upload (FALLBACK)
-                  This block is shown if we have no photo and the webcam is not active.
-                */}
+                {/* 1. Initial state: Show buttons for Camera or File Upload (FALLBACK) */}
                 {!photoData && !isWebcamActive && (
                   <>
                     <button type="button" onClick={startCamera} className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Open camera to capture photo</button>
@@ -182,23 +184,22 @@ export default function Signup({ setUser, setRole }) {
                   </>
                 )}
 
-                {/* 2. Webcam Active state: Show live feed and capture controls
-                  The Webcam component handles requesting permissions and starting the stream on mount.
-                */}
+                {/* 2. Webcam Active state: Show live feed and capture controls */}
                 {isWebcamActive && (
                   <div className="space-y-2">
                     <div className="w-full rounded border overflow-hidden">
                       <Webcam
                         audio={false}
                         ref={webcamRef}
-                        screenshotFormat="image/jpeg" // Use JPEG for smaller size
+                        screenshotFormat="image/jpeg" 
                         videoConstraints={videoConstraints}
                         className="w-full h-56 object-cover"
-                        // The onUserMediaError prop is a powerful fallback handler
+                        // FIX: Apply CSS transform to mirror the preview horizontally
+                        style={mirroredStyle} 
                         onUserMediaError={(error) => {
                           console.error("Camera access failed:", error);
                           alert('Could not open camera. Please check permissions or upload a file.');
-                          stopCamera(); // Stop trying to use the camera
+                          stopCamera(); 
                         }}
                       />
                     </div>
@@ -209,11 +210,10 @@ export default function Signup({ setUser, setRole }) {
                   </div>
                 )}
 
-                {/* 3. Photo Captured state: Show captured image and controls
-                */}
+                {/* 3. Photo Captured state: Show captured image and controls */}
                 {photoData && (
                   <div className="space-y-2">
-                    <img src={photoData} alt="captured" className="w-full rounded border" />
+                    <img src={photoData} alt="captured" className="w-full rounded border" style={mirroredStyle} />
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setPhotoData(null)} className="flex-1 bg-yellow-100 text-yellow-800 py-2 rounded-md">Retake</button>
                       <button type="button" onClick={() => { /* keep photo */ }} className="flex-1 bg-green-100 text-green-800 py-2 rounded-md">Keep</button>
