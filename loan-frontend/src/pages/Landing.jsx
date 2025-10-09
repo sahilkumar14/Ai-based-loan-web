@@ -61,7 +61,7 @@ export default function Landing() {
         </section>
 
         <section id="features" className="mt-20">
-          <h2 className="text-2xl font-bold text-white">Features</h2>
+          <h2 className="text-2xl font-bold text-blue-600">Features</h2>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow">
               <h3 className="font-semibold text-gray-900">Real-time scoring</h3>
