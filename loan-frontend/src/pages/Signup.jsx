@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import bgImage from "../assets/2563.jpg";
 
 export default function Signup({ setUser, setRole }) {
   const navigate = useNavigate();
@@ -24,14 +25,24 @@ export default function Signup({ setUser, setRole }) {
     }
   };
 
+  const bgStyle = {
+    backgroundImage: `url(${bgImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Create an account</h1>
-        <p className="text-sm text-gray-500 mb-6">Start applying with a new account</p>
+  <div className="min-h-screen relative py-6">
+      {/* background limited to top 60vh so form area remains visible without scrolling */}
+  <div className="absolute inset-0 -z-10" style={bgStyle} aria-hidden />
+  <div className="absolute inset-0 z-0 bg-black/8" aria-hidden />
+      <div className="flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6 relative z-10">
+  <h1 className="text-2xl font-bold text-gray-900 mb-0">Create an account</h1>
+  <p className="text-sm text-gray-500 mb-4">Start applying with a new account</p>
 
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+  <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
             <input
               name="name"
@@ -94,6 +105,7 @@ export default function Signup({ setUser, setRole }) {
         <p className="text-sm text-center text-gray-500 mt-4">
           Already have an account? <a href="/login" className="text-blue-600">Sign in</a>
         </p>
+        </div>
       </div>
     </div>
   );
