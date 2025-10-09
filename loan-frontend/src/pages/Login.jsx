@@ -31,7 +31,7 @@ export default function Login({ setRole, setUser }) {
 
     // If no dummy user matched, fall back to network auth (replace URL with real backend)
     try {
-      const res = await fetch("https://10.107.1.124:8000/login", {
+      const res = await fetch("http://localhost:8000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

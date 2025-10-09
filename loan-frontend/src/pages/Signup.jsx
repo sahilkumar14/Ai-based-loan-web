@@ -46,7 +46,7 @@ export default function Signup({ setUser, setRole }) {
       }
       
       // ... (Rest of the fetch logic is the same)
-      const res = await fetch("http://10.107.1.124:8000/signup", {
+      const res = await fetch("http://localhost:8000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
