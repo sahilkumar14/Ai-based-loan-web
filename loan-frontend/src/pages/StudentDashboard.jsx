@@ -42,7 +42,7 @@ export default function StudentDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch("https://your-backend.com/submitLoanRequest", {
+      const res = await fetch("https://localhost:8000/api/auth/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

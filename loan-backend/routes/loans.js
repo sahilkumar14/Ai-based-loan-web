@@ -1,7 +1,7 @@
 // routes/loans.js
 import express from "express";
-import { v4 as uuidv4 } from "uuid";
 import { pool } from "../db.js";
+import { createLoanRequest, getAllLoanRequests, updateLoanStatus } from "../models/loanModel.js";
 import { requireAuth, requireDistributor } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -41,28 +41,23 @@ router.post("/submit", requireAuth, async (req, res) => {
     if (previous_defaults === true || previous_defaults === "true") fraudScore += 20;
     fraudScore = Math.min(95, Math.round(fraudScore));
 
-    const id = uuidv4();
-    const insertText = `
-      INSERT INTO loans (id, student_id, student_name, loan_amount, income, credit_score, employment_type, loan_duration, previous_defaults, fraud_score, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING *
-    `;
-    const values = [
-      id,
-      req.user.id, // student user id from JWT
-      student_name,
-      amount,
-      income || null,
-      credit_score || null,
-      employment_type || null,
-      loan_duration || null,
-      previous_defaults === true || previous_defaults === "true",
-      fraudScore,
-      "under_review"
-    ];
+    // Map request into model's expected fields
+    const modelData = {
+      name: student_name,
+      email: req.user.email || null,
+      phone: null,
+      loanAmount: amount,
+      loanDuration: loan_duration || null,
+      purpose: employment_type || null,
+      familyannualincome: income || null,
+      creditScore: credit_score || null,
+      previousDefaults: previous_defaults === true || previous_defaults === "true",
+      aadhar: null,
+      dob: null
+    };
 
-    const { rows } = await pool.query(insertText, values);
-    return res.json({ success: true, message: "Loan submitted and under review", loan: rows[0] });
+    const newLoan = await createLoanRequest(modelData);
+    return res.json({ success: true, message: "Loan submitted and under review", loan: newLoan });
   } catch (err) {
     console.error("Submit loan error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -75,7 +70,7 @@ router.post("/submit", requireAuth, async (req, res) => {
  */
 router.get("/", requireAuth, requireDistributor, async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM loans ORDER BY created_at DESC");
+    const rows = await getAllLoanRequests();
     return res.json({ success: true, requests: rows });
   } catch (err) {
     console.error("Get loans error:", err);
@@ -92,13 +87,16 @@ router.post("/:id/status", requireAuth, requireDistributor, async (req, res) => 
   try {
     const loanId = req.params.id;
     const { status } = req.body;
-    const allowed = ["under_review", "approved", "cancelled", "Reviewing", "Approved", "Cancelled"];
-    if (!status || !allowed.includes(status)) {
+    if (!status) return res.status(400).json({ success: false, message: "Missing status" });
+    const normalized = String(status).toLowerCase();
+    const allowed = ["under_review", "approved", "cancelled"];
+    if (!allowed.includes(normalized)) {
       return res.status(400).json({ success: false, message: "Invalid status" });
     }
-    const { rowCount } = await pool.query("UPDATE loans SET status=$1 WHERE id=$2", [status, loanId]);
-    if (rowCount === 0) return res.status(404).json({ success: false, message: "Loan not found" });
-    return res.json({ success: true, message: "Status updated" });
+
+    const updated = await updateLoanStatus(loanId, normalized);
+    if (!updated) return res.status(404).json({ success: false, message: "Loan not found" });
+    return res.json({ success: true, message: "Status updated", loan: updated });
   } catch (err) {
     console.error("Update status error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
