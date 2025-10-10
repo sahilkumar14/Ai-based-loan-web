@@ -1,14 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar({ user, role, setRole, setUser }) {
   const navigate = useNavigate();
 
+  const readStored = () => {
+    try {
+      const sUser = localStorage.getItem('user');
+      const sRole = localStorage.getItem('role');
+      return { sUser, sRole };
+    } catch {
+      return { sUser: null, sRole: null };
+    }
+  };
+
+  const [displayUser, setDisplayUser] = useState(() => user || readStored().sUser || null);
+  const [displayRole, setDisplayRole] = useState(() => role || readStored().sRole || null);
+
+  useEffect(() => {
+    // when parent props change, reflect them
+    if (user) setDisplayUser(user);
+    if (role) setDisplayRole(role);
+  }, [user, role]);
+
+  useEffect(() => {
+    // listen to localStorage changes from other tabs or direct updates
+    const onStorage = (e) => {
+      if (e.key === 'user' || e.key === 'role' || e.key === null) {
+        const { sUser, sRole } = readStored();
+        setDisplayUser(sUser || user || null);
+        setDisplayRole(sRole || role || null);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    // listen to custom same-tab auth change events
+    const onAuthChanged = (e) => {
+      const d = e?.detail || {};
+      setDisplayUser(d.user || readStored().sUser || user || null);
+      setDisplayRole(d.role || readStored().sRole || role || null);
+    };
+    window.addEventListener('authChanged', onAuthChanged);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user, role]);
+
   const handleLogout = () => {
-    setRole(null);
+    if (setRole) setRole(null);
     if (setUser) setUser(null);
+    try {
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      localStorage.removeItem('devUser');
+    } catch {}
+    setDisplayUser(null);
+    setDisplayRole(null);
     navigate("/");
   };
+
+  useEffect(() => {
+    // debug
+    console.debug('[Navbar] displayUser, displayRole:', displayUser, displayRole);
+  }, [displayUser, displayRole]);
 
   return (
     <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
@@ -17,14 +68,14 @@ export default function Navbar({ user, role, setRole, setUser }) {
       </Link>
 
       <div className="flex items-center gap-4">
-        {user ? (
+        {displayUser ? (
           <>
             <span className="text-gray-700 capitalize">
-              {user}
-              {role ? ` (${role})` : ""}
+              {displayUser}
+              {displayRole ? ` (${displayRole})` : ""}
             </span>
             <Link
-              to={role === "student" ? "/student" : "/distributor"}
+              to={displayRole === "student" ? "/student" : "/distributor"}
               className="text-blue-600 hover:underline"
             >
               Dashboard

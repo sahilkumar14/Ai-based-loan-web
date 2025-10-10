@@ -10,8 +10,15 @@ import StudentDashboard from "./pages/StudentDashboard";
 import DistributorDashboard from "./pages/DistributorDashboard";
 
 function App() {
-  const [role, setRole] = useState(null);
-  const [user, setUser] = useState(null); // Placeholder for user data
+  const [role, setRole] = useState(() => {
+    try { return localStorage.getItem('role') || null; } catch { return null; }
+  });
+  const [user, setUser] = useState(() => {
+    try { return localStorage.getItem('user') || null; } catch { return null; }
+  });
+
+  // debug: log role changes when developing
+  console.debug('[App] role state:', role, 'user:', user);
 
   return (
     <Router>

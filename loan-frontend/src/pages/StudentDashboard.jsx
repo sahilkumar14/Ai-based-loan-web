@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export default function StudentDashboard() {
   const [metrics, setMetrics] = useState({
@@ -22,12 +22,24 @@ export default function StudentDashboard() {
   const scrollCount = useRef(0);
   const clickTimes = useRef([]);
 
-  // Send data every 10 seconds
+  // We will send metrics only once (on unload or before form submit).
+  // Keep a guard so we never send multiple times.
+  const sentRef = useRef(false);
+
+  // Send on unmount / page unload — use sendBeacon when possible to avoid blocking
   useEffect(() => {
-    const interval = setInterval(() => {
-      sendMetrics();
-    }, 10000);
-    return () => clearInterval(interval);
+    const handleBeforeUnload = () => {
+      // prefer sendBeacon for unload
+      sendMetrics({ useBeacon: true });
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      // also attempt to send on component unmount
+      sendMetrics({ useBeacon: true });
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- TRACK KEYBOARD ACTIVITY ---
@@ -90,7 +102,7 @@ export default function StudentDashboard() {
 
 
   // --- SEND METRICS TO BACKEND ---
-  const sendMetrics = async () => {
+  const sendMetrics = async ({ useBeacon = false } = {}) => {
     const avgHesitation = keyCount.current > 1 ? hesitationSum.current / keyCount.current : 0;
     const typingSpeed = keyCount.current > 0 ? (keyCount.current / (avgHesitation + 1)) * 1000 : 0;
     const clickIntervals = clickTimes.current
@@ -118,24 +130,39 @@ export default function StudentDashboard() {
         };
         
         
-        try {
-          await fetch("http://localhost:8000/api/behavior", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(dataToSend),
-          });
-          console.log("✅ Sent behavior data:", dataToSend);
-        } catch (err) {
-          console.error("❌ Failed to send metrics:", err);
-        }
-    
-        // Reset trackers after sending
-        keyCount.current = 0;
-        hesitationSum.current = 0;
-        backspaceCount.current = 0;
-        totalMouseDistance.current = 0;
-        scrollCount.current = 0;
-      };  
+    // Prevent multiple sends
+    if (sentRef.current) return;
+    sentRef.current = true;
+
+    try {
+      const payload = JSON.stringify(dataToSend);
+      // If useBeacon requested and available, use it (synchronous-ish for unload)
+      if (useBeacon && typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+  const blob = new Blob([payload], { type: 'application/json' });
+  const ok = navigator.sendBeacon('http://localhost:8000/api/loans/behaviour', blob);
+        console.log('✅ Sent behavior data via sendBeacon:', ok, dataToSend);
+      } else {
+        // Use fetch with keepalive to allow sending during unload; also used on submit
+        await fetch('http://localhost:8000/api/loans/behaviour', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        });
+        console.log('✅ Sent behavior data via fetch:', dataToSend);
+      }
+    } catch (err) {
+      console.error('❌ Failed to send metrics:', err);
+    }
+
+    // Reset trackers after sending
+    keyCount.current = 0;
+    hesitationSum.current = 0;
+    backspaceCount.current = 0;
+    totalMouseDistance.current = 0;
+    scrollCount.current = 0;
+  };
+
   const initialState = {
     name: "",
     email: "",
@@ -176,6 +203,43 @@ export default function StudentDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
+    try {
+      // 1) Call behaviour endpoint to get a risk/behaviour score
+      const behRes = await fetch("http://localhost:8000/api/loans/behaviour", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const behData = await behRes.json();
+
+      // Store behaviour result and show a confirmation to user
+      setBehaviourResult(behData);
+      setShowBehaviourModal(true);
+
+      // Wait for user confirmation (handled via UI buttons). When user confirms,
+      // submitConfirmed() will call the submit endpoint and close the modal.
+    } catch (err) {
+      console.error(err);
+      alert("Error checking behaviour score");
+      setSubmitting(false);
+    }
+  };
+
+  // Behaviour modal state
+  const [showBehaviourModal, setShowBehaviourModal] = useState(false);
+  const [behaviourResult, setBehaviourResult] = useState(null);
+
+  const submitConfirmed = async (confirm) => {
+    // If user cancelled, just close modal and stop submitting
+    if (!confirm) {
+      setShowBehaviourModal(false);
+      setBehaviourResult(null);
+      setSubmitting(false);
+      return;
+    }
+
+    // proceed to call submit endpoint
     try {
       const res = await fetch("http://localhost:8000/api/loans/submit", {
         method: "POST",
@@ -183,13 +247,15 @@ export default function StudentDashboard() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      alert(data.message || "Your loan is under review");
+      alert((behaviourResult?.explanation ? behaviourResult.explanation + ' — ' : '') + (data.message || "Your loan is under review"));
       setFormData(initialState);
       setStep(1);
     } catch (err) {
       console.error(err);
       alert("Error submitting loan request");
     } finally {
+      setShowBehaviourModal(false);
+      setBehaviourResult(null);
       setSubmitting(false);
     }
   };
@@ -322,6 +388,21 @@ export default function StudentDashboard() {
           </div>
         </form>
       </div>
+
+      {/* Behaviour confirmation modal */}
+      {showBehaviourModal && behaviourResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-xl font-semibold mb-2">Behaviour Check</h3>
+            <p className="mb-4">Score: <strong>{behaviourResult.behaviourScore}</strong></p>
+            <p className="mb-4 text-sm text-gray-700">{behaviourResult.explanation}</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => submitConfirmed(false)} className="px-4 py-2 rounded border bg-white">Cancel</button>
+              <button onClick={() => submitConfirmed(true)} className="px-4 py-2 rounded bg-green-600 text-white">Confirm & Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

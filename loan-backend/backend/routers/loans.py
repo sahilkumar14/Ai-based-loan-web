@@ -35,3 +35,6 @@ def update_status(id: int, payload: schemas.LoanStatusUpdate, db: Session = Depe
     loan.status = payload.status
     db.commit()
     return {"message": f"Status updated to {payload.status}"}
+
+
+
