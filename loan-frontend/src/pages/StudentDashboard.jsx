@@ -1,6 +1,141 @@
 import React, { useState } from "react";
 
 export default function StudentDashboard() {
+  const [metrics, setMetrics] = useState({
+    typingSpeed: 0,
+    hesitationTime: 0,
+    errorCount: 0,
+    mouseDistance: 0,
+    scrollEvents: 0,
+    clickPatternVariability: 0,
+  });
+
+  // --- INTERNAL TRACKERS ---
+  const lastKeyTime = useRef(null);
+  const keyCount = useRef(0);
+  const hesitationSum = useRef(0);
+  const backspaceCount = useRef(0);
+
+  const lastMouse = useRef({ x: 0, y: 0 });
+  const totalMouseDistance = useRef(0);
+
+  const scrollCount = useRef(0);
+  const clickTimes = useRef([]);
+
+  // Send data every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      sendMetrics();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- TRACK KEYBOARD ACTIVITY ---
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const now = Date.now();
+
+      if (lastKeyTime.current) {
+        const diff = now - lastKeyTime.current;
+        hesitationSum.current += diff;
+      }
+
+      lastKeyTime.current = now;
+      keyCount.current++;
+
+      if (e.key === "Backspace") {
+        backspaceCount.current++;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // --- TRACK MOUSE MOVEMENT ---
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const { x, y } = e;
+      const dx = x - lastMouse.current.x;
+      const dy = y - lastMouse.current.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      totalMouseDistance.current += dist;
+      lastMouse.current = { x, y };
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // --- TRACK SCROLLS ---
+  useEffect(() => {
+    const handleScroll = () => {
+      scrollCount.current++;
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+
+  // --- TRACK CLICK VARIABILITY ---
+  useEffect(() => {
+    const handleClick = () => {
+      const now = Date.now();
+      clickTimes.current.push(now);
+      if (clickTimes.current.length > 10) clickTimes.current.shift();
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, []);
+
+
+  // --- SEND METRICS TO BACKEND ---
+  const sendMetrics = async () => {
+    const avgHesitation = keyCount.current > 1 ? hesitationSum.current / keyCount.current : 0;
+    const typingSpeed = keyCount.current > 0 ? (keyCount.current / (avgHesitation + 1)) * 1000 : 0;
+    const clickIntervals = clickTimes.current
+      .map((t, i, arr) => (i === 0 ? 0 : t - arr[i - 1]))
+      .filter(Boolean);
+    const variability =
+      clickIntervals.length > 1
+        ? Math.sqrt(
+            clickIntervals
+              .map((v) => Math.pow(v - clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length, 2))
+              .reduce((a, b) => a + b, 0) / clickIntervals.length
+          )
+        : 0;
+
+
+        const dataToSend = {
+          page: "student_dashboard",
+          typingSpeed: parseFloat(typingSpeed.toFixed(2)),
+          hesitationTime: parseFloat(avgHesitation.toFixed(2)),
+          errorCount: backspaceCount.current,
+          mouseDistance: parseFloat(totalMouseDistance.current.toFixed(2)),
+          scrollEvents: scrollCount.current,
+          clickPatternVariability: parseFloat(variability.toFixed(2)),
+          timestamp: Date.now(),
+        };
+        
+        
+        try {
+          await fetch("http://localhost:8000/api/behavior", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dataToSend),
+          });
+          console.log("✅ Sent behavior data:", dataToSend);
+        } catch (err) {
+          console.error("❌ Failed to send metrics:", err);
+        }
+    
+        // Reset trackers after sending
+        keyCount.current = 0;
+        hesitationSum.current = 0;
+        backspaceCount.current = 0;
+        totalMouseDistance.current = 0;
+        scrollCount.current = 0;
+      };  
   const initialState = {
     name: "",
     email: "",
