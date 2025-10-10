@@ -42,43 +42,18 @@ export default function StudentDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // map frontend form names to backend expected fields
-      const payload = {
-        student_name: formData.name,
-        loan_amount: formData.loanAmount,
-        income: formData.familyannualincome,
-        credit_score: formData.creditScore,
-        employment_type: formData.purpose,
-        loan_duration: formData.loanDuration,
-        previous_defaults: formData.previousDefaults === 'Yes',
-      };
-
-      const token = localStorage.getItem('token');
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      // use the loans endpoint (backend expects /api/loans/submit)
-      const res = await fetch('http://localhost:8000/api/loans/submit', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
+      const res = await fetch("http://localhost:8000/api/loans/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-
-      // handle non-json or error responses
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        const msg = (data && data.message) || 'Submission failed';
-        console.error('Loan submit failed', res.status, data);
-        alert(msg);
-      } else {
-        alert((data && data.message) || 'Your loan is under review');
-        setFormData(initialState);
-        setStep(1);
-      }
+      const data = await res.json();
+      alert(data.message || "Your loan is under review");
+      setFormData(initialState);
+      setStep(1);
     } catch (err) {
       console.error(err);
-      alert('Error submitting loan request');
+      alert("Error submitting loan request");
     } finally {
       setSubmitting(false);
     }
@@ -190,10 +165,23 @@ export default function StudentDashboard() {
               </button>
             </div>
             <div className="flex gap-2">
-              {step < totalSteps ? (
-                <button type="button" onClick={next} className="px-4 py-2 rounded bg-blue-600 text-white">Next</button>
-              ) : (
-                <button type="submit" disabled={submitting} className="px-4 py-2 rounded bg-green-600 text-white">{submitting ? 'Submitting...' : 'Submit'}</button>
+              {step < totalSteps && (
+                <button
+                  type="button"
+                  onClick={next}
+                  className="px-4 py-2 rounded bg-blue-600 text-white"
+                >
+                  Next
+                </button>
+              )}
+              {step === totalSteps && (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 rounded bg-green-600 text-white"
+                >
+                  {submitting ? 'Submitting...' : 'Submit'}
+                </button>
               )}
             </div>
           </div>

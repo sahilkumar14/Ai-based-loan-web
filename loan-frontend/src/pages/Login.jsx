@@ -38,14 +38,7 @@ export default function Login({ setRole, setUser }) {
       });
       const data = await res.json();
       if (data.success) {
-        // Persist token and user for authenticated requests
-        try {
-          if (data.token) localStorage.setItem('token', data.token);
-          if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-        } catch {}
-
         setRole(form.role);
-        if (setUser && data.user) setUser(data.user.name || data.user.full_name || data.user.email);
         navigate(form.role === "student" ? "/student" : "/distributor");
       } else {
         alert(data.message || "Login failed");
@@ -124,48 +117,7 @@ export default function Login({ setRole, setUser }) {
             </label>
           </div>
 
-          <div>
-            <label className="text-sm text-gray-600">Role</label>
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full mt-2 border border-gray-200 p-3 rounded-md"
-            >
-              <option value="student">Student</option>
-              <option value="distributor">Distributor</option>
-            </select>
-          </div>
-
-          {/* {form.role === "student" && (
-            <div className="relative">
-              <input
-                name="AadharCardNumber"
-                value={form.AadharCardNumber || ""}
-                onChange={handleChange}
-                placeholder=" "
-                className="peer w-full border border-gray-200 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-              <label className="absolute left-3 top-3 text-gray-400 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-focus:top-[-0.6rem] peer-focus:text-xs peer-focus:text-blue-600 bg-white px-1">
-                Aadhar Card Number
-              </label>
-            </div>
-          )}
-
-          {form.role === "distributor" && (
-            <div className="relative">
-              <input
-                name="bankname"
-                value={form.bankname || ""}
-                onChange={handleChange}
-                placeholder=" "
-                className="peer w-full border border-gray-200 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-              <label className="absolute left-3 top-3 text-gray-400 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-focus:top-[-0.6rem] peer-focus:text-xs peer-focus:text-blue-600 bg-white px-1">
-                Bank Name
-              </label>
-            </div>
-          )} */}
+          
 
           <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700">Sign in</button>
         </form>
