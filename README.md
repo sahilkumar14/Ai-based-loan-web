@@ -58,3 +58,24 @@ This project integrates **behavioral analysis** into the loan process to detect 
 
 ## ⚙️ Project Structure
 
+Credify/
+│
+├── frontend/ # React app
+│ ├── src/
+│ │ ├── pages/
+│ │ │ ├── Landing.jsx
+│ │ │ ├── Login.jsx
+│ │ │ ├── Signup.jsx
+│ │ │ ├── StudentDashboard.jsx
+│ │ │ └── DistributorDashboard.jsx
+│ │ ├── components/
+│ │ └── utils/behaviorAPI.js
+│ └── package.json
+│
+├── backend/ # FastAPI app
+│ ├── main.py
+│ ├── models.py (if using SQLAlchemy)
+│ ├── database.py
+│ └── requirements.txt
+│
+└── README.md
