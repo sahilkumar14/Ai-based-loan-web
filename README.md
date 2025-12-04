@@ -2,7 +2,7 @@
 
 # 🎓 Credify — Smart Loan & Fraud Detection Platform
 
-EduLoanGuard is a full-stack web application that helps **students apply for education loans** while enabling **distributors (loan officers)** to detect **fraudulent or suspicious behavior** using **AI-driven behavioral analytics**.
+Credify is a full-stack web application that helps **students apply for education loans** while enabling **distributors (loan officers)** to detect **fraudulent or suspicious behavior** using **AI-driven behavioral analytics**.
 
 ---
 
@@ -79,4 +79,5 @@ Credify/
 │ └── requirements.txt
 │
 └── README.md
+
 
